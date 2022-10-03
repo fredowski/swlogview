@@ -168,8 +168,8 @@ class logfile {
 	    ds.y.push(value);
 	    offset =  dataindexlist[i] + timesuboff;
 	    var timeval = dv.getBigUint64(offset,true);
-	    //ds.x.push(Number(timeval >> 10n));
-	    ds.x.push(i);
+	    var date = new Date(Number(timeval >> 10n));
+	    ds.x.push(date);
 	}
 	return ds;
     }
