@@ -6,16 +6,6 @@
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version. */
 
-plot = document.getElementById('plot');
-Plotly.newPlot(plot, [{
-	x: [1, 2, 3, 4, 5],
-	y: [1, 2, 4, 8, 16] }], {
-	margin: { t: 0 } } );
-
-const itemlist = [
-{name : "Auto", subitemlist : ["Lenkrad", "Reifen"] },
-{name : "Baum", subitemlist : ["Blaetter", "Wurzeln"] } ];
-
 function readfiles(files) {
     reader = new FileReader();
     reader.onload = function(event) {
@@ -25,6 +15,12 @@ function readfiles(files) {
 	lf = new logfile(buffer);
 	build_navbar (lf.get_msgitem_list());
 	var ds = lf.get_data_series("RCIN", "C1");
+	// Plot
+	ds.type = 'scatter';
+	ds.showlegend = true;
+	plot = document.getElementById('plot');
+	Plotly.newPlot(plot, [ds]);
+
 	console.log(ds);
 	console.log(lf.msgindex);
 	console.log(dv.buffer.byteLength);

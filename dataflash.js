@@ -149,7 +149,7 @@ class logfile {
     /* Based on item name like "GPS" and the subitemname like "Lat" I go through the logbuffer and
      * collect a time and data array ready for plotting with plotly */
     get_data_series(item, subitem) {
-	var ds = { name : item + "." + subitem, time : [], data : [] };
+	var ds = { name : item + "." + subitem, x : [], y : [] };
 	var msgtype = this.msgtype_name_hash[item]; //Type number from name like GPS
 	var msgitem = this.msgtypes[msgtype];
 	var subitemidx = msgitem.subitemidx_from_name[subitem];
@@ -159,13 +159,13 @@ class logfile {
 	var rf = readfunc[msgitem.fields[subitemidx]];
 	var dv = new DataView(this.buffer);
 	var dataindexlist = this.msgindex[msgtype];
-	for (var i = 0;i < dataindexlist.length;i++) {
+	for (var i = 0;i < dataindexlist.length;i += 2) {
 	    var offset = dataindexlist[i] + subitemoffset;
 	    var value = rf(dv, offset);
-	    ds.data.push(value);
+	    ds.y.push(value);
 	    offset =  dataindexlist[i] + timesuboff;
 	    var timeval = dv.getBigUint64(offset,true);
-	    ds.time.push(timeval);
+	    ds.x.push(Number(timeval >> 10n));
 	}
 	return ds;
     }
