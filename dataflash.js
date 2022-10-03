@@ -110,28 +110,31 @@ class logfile {
 	this.parse();
     }
     parse() {
-	for (var dv = new DataView(buffer), idx = 0; idx < dv.byteLength-3;idx++) {
+	for (var dv = new DataView(buffer), idx = 0; idx < dv.byteLength-3;) {
 	    if (dv.getUint8(idx) == 163 && dv.getUint8(idx+1) == 149) {
-		idx += 2;
-		var msgtype = dv.getUint8(idx);
+		var msgtype = dv.getUint8(idx+2);
 		if (msgtype == 128) {
 		    /* 128 is a FMT message which defines the format of
                      * other items. So we found a new item */
-		    idx++;
-		    var msg = new msgformat(dv, idx);		 
+		    var msg = new msgformat(dv, idx+3);
 		    console.log(msg);
 		    this.msgtypes[msg.type] = msg;
 		    this.msgtype_name_hash[msg.name] = msg.type;
+		    idx += 89;
 		} else if (this.msgtypes[msgtype] != null) {
 		    /* Add the offset where we found this message to the
                      * array of offsets. We can then later make a time series
                      * by going very fast throught the logbuffer */
 		    if (this.msgindex[msgtype] == null)
 			this.msgindex[msgtype] = [];
-		    this.msgindex[msgtype].push(idx+1);
-		} else 
-		    console.log("Found message not in index");
-	    }
+		    this.msgindex[msgtype].push(idx+3);
+		    idx += this.msgtypes[msgtype].length;
+		} else {
+		    console.log("Found message not in dictionary");
+		    idx++;
+		}
+	    } else
+		idx++;
 	}
     }
     /* Return a sorted list of message items to show them in the
@@ -159,13 +162,14 @@ class logfile {
 	var rf = readfunc[msgitem.fields[subitemidx]];
 	var dv = new DataView(this.buffer);
 	var dataindexlist = this.msgindex[msgtype];
-	for (var i = 0;i < dataindexlist.length;i += 2) {
+	for (var i = 0;i < dataindexlist.length;i++) {
 	    var offset = dataindexlist[i] + subitemoffset;
 	    var value = rf(dv, offset);
 	    ds.y.push(value);
 	    offset =  dataindexlist[i] + timesuboff;
 	    var timeval = dv.getBigUint64(offset,true);
-	    ds.x.push(Number(timeval >> 10n));
+	    //ds.x.push(Number(timeval >> 10n));
+	    ds.x.push(i);
 	}
 	return ds;
     }
