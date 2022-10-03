@@ -1,0 +1,36 @@
+<html>
+<!-- Copyright 2022 Friedrich Beckmann
+     This program is free software: you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+     the Free Software Foundation, either version 3 of the License, or
+     (at your option) any later version. -->
+<head><br><h1>SearchWing Ardupilot Logviewer</h1><br>
+<link rel="stylesheet" href="sw.css">
+</head>
+<body ondrop="handle_ondrop(event)" ondragover="handle_dragover(event)" ondragenter="handle_dragenter(event)">
+<p> Drag&Drop your dataflash *.bin file here! </p>
+<p>
+<input type="file" id="files" name="file">
+</input>
+</p>
+
+<section>
+<nav>
+<ul id="msglist">
+<!-- The item tree will be build here -->
+</ul>
+</nav>
+<plot>
+<div id="plot" style="width:600px;height:250px;"></div>
+<p> Hallo! </p>
+</plot>
+</section>
+
+<script type="text/javascript" src="dataflash.js"></script>
+<script type="text/javascript" src="navbar.js"></script>
+<script type="text/javascript" src="plotly-2.14.0.min.js"></script>
+<script type="text/javascript" src="main.js"></script>
+<script>
+</script>
+</body>
+</html>
