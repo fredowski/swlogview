@@ -13,6 +13,7 @@ function readfiles(files) {
 	buffer = event.target.result;
 	dv = new DataView(buffer);
 	lf = new logfile(buffer);
+	document.logfile = lf;
 	build_navbar (lf.get_msgitem_list());
 	var ds = lf.get_data_series("RCIN", "C1");
 	// Plot

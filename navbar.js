@@ -46,9 +46,17 @@ function build_navbar (itemlist) {
 	ul.className = "nested";
 	subitemlist = item.subitemlist;
 	for (var si = 0; si < subitemlist.length; si++) {
-            var subitem = document.createElement('li');
-	    subitem.appendChild(document.createTextNode(subitemlist[si]));
-	    ul.appendChild(subitem);
+            const li = document.createElement('li');
+	    li.textContent = subitemlist[si];
+	    li.addEventListener("click", function () {
+		const itemname = this.parentElement.parentElement.firstChild.textContent;
+		const subitemname = this.textContent;
+		const lf = document.logfile;
+		const ds = lf.get_data_series(itemname, subitemname);
+		const plot = document.getElementById('plot');
+		Plotly.addTraces(plot, ds);
+	    });
+	    ul.appendChild(li);
 	}
 	entry.appendChild(ul);
 	vl.appendChild(entry);
