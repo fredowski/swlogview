@@ -4,13 +4,13 @@
      it under the terms of the GNU General Public License as published by
      the Free Software Foundation, either version 3 of the License, or
      (at your option) any later version. -->
-<head><br><h1>SearchWing Ardupilot Logviewer</h1><br>
+<head>
 <link rel="stylesheet" href="sw.css">
 </head>
 <body ondrop="handle_ondrop(event)" ondragover="handle_dragover(event)" ondragenter="handle_dragenter(event)">
-<p> Drag&Drop your dataflash *.bin file here! </p>
-<p>
-<input type="file" id="files" name="file">
+<h1>SearchWing Ardupilot Logviewer</h1>
+<p> Drag&Drop your dataflash *.bin file here!
+<input type="file" id="files" name="file" accept=".bin" onchange="handle_onfilechange(event)">
 </input>
 </p>
 

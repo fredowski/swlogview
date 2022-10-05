@@ -7,6 +7,8 @@
    (at your option) any later version. */
 
 function readfiles(files) {
+    if (!is_dataflash(files[0].name))
+        return;
     reader = new FileReader();
     reader.onload = function(event) {
 	console.log("file open");
@@ -47,3 +49,17 @@ function handle_dragover(event) {
 function handle_dragenter(event) {
     event.preventDefault();
 };
+
+function handle_onfilechange(event) {
+    console.log("File here!" + event.currentTarget.files[0].name);
+    readfiles(event.currentTarget.files);
+}
+
+/** Check the filename ending if this a dataflash file. The
+ *  mimetype does not help here because there is no unique mimetype
+ *  for the dataflash file. So we just check the file extension.
+ */
+function is_dataflash(fname) {
+    const fileextension = fname.split(".").pop();
+    return (fileextension == "bin");
+}
