@@ -34,9 +34,10 @@ function build_navbar (itemlist) {
 	if (item == null)
 	    continue;
 	var entry = document.createElement('li');
+	entry.id = item.name;
 	var span  = document.createElement('span');
 	span.className = "caret";
-	span.appendChild(document.createTextNode(item.name));
+	span.textContent = item.name + "    ("+ item.data.length + ")";
 	span.addEventListener("click", function () {
 	    var el = this.parentElement.querySelector(".nested");
 	    el.classList.toggle("active");
@@ -49,7 +50,7 @@ function build_navbar (itemlist) {
             const li = document.createElement('li');
 	    li.textContent = subitemlist[si];
 	    li.addEventListener("click", function () {
-		const itemname = this.parentElement.parentElement.firstChild.textContent;
+		const itemname = this.parentElement.parentElement.id;
 		const subitemname = this.textContent;
 		const lf = document.logfile;
 		const ds = lf.get_data_series(itemname, subitemname);
