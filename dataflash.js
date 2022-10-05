@@ -121,16 +121,16 @@ class msgformat {
 		this.data = [];
     }
     dump () {
-	console.log("Name: " + this.name);
-	console.log("Fields: " + this.fields);
+		console.log("Name: " + this.name);
+		console.log("Fields: " + this.fields);
     }
 }
 class logfile {
     constructor(buffer) {
-	this.buffer = buffer,
-	this.msgtypes = [], // An array of message type items like GPS, indexed with the type number
-	this.msgtype_name_hash = [], 
-	this.parse();
+		this.buffer = buffer,
+		this.msgtypes = [], // An array of message type items like GPS, indexed with the type number
+		this.msgtype_name_hash = [],
+		this.parse();
     }
     parse() {
 	for (var dv = new DataView(buffer), idx = 0; idx < dv.byteLength-3;) {
@@ -181,31 +181,30 @@ class logfile {
     /* Based on item name like "GPS" and the subitemname like "Lat" I go through the logbuffer and
      * collect a time and data array ready for plotting with plotly */
     get_data_series(item, instance, subitem) {
-	
-	const msgtypeval = this.msgtype_name_hash[item]; //Type number from name like GPS
-	const msgt = this.msgtypes[msgtypeval];
-	var ds = { name : item +
-		(msgt.with_instances ? instance : "") + "." + subitem, x : [], y : [] };
-	const subitemidx = msgt.subitemidx_from_name[subitem];
-	const timesubidx = msgt.subitemidx_from_name["TimeUS"];
-	const subitemoffset = msgt.subitemoffset[subitemidx]; /* Offset of subitem within item */
-	const timesuboff =  msgt.subitemoffset[timesubidx];
-	const rf = readfunc[msgt.fields[subitemidx]];
-	const dv = new DataView(this.buffer);
-	let dataindexlist = [];
-	if (msgt.with_instances)
-		dataindexlist = msgt.data[instance];
-	else
-		dataindexlist = msgt.data;
-	for (let i = 0;i < dataindexlist.length;i++) {
-	    let offset = dataindexlist[i] + subitemoffset;
-	    const value = rf(dv, offset);
-	    ds.y.push(value);
-	    offset = dataindexlist[i] + timesuboff;
-	    const timeval = dv.getBigUint64(offset,true);
-	    const date = new Date(Number(timeval >> 10n));
-	    ds.x.push(date);
-	}
-	return ds;
+		const msgtypeval = this.msgtype_name_hash[item]; //Type number from name like GPS
+		const msgt = this.msgtypes[msgtypeval];
+		var ds = { name : item +
+			(msgt.with_instances ? instance : "") + "." + subitem, x : [], y : [] };
+		const subitemidx = msgt.subitemidx_from_name[subitem];
+		const timesubidx = msgt.subitemidx_from_name["TimeUS"];
+		const subitemoffset = msgt.subitemoffset[subitemidx]; /* Offset of subitem within item */
+		const timesuboff =  msgt.subitemoffset[timesubidx];
+		const rf = readfunc[msgt.fields[subitemidx]];
+		const dv = new DataView(this.buffer);
+		let dataindexlist = [];
+		if (msgt.with_instances)
+			dataindexlist = msgt.data[instance];
+		else
+			dataindexlist = msgt.data;
+		for (let i = 0;i < dataindexlist.length;i++) {
+			let offset = dataindexlist[i] + subitemoffset;
+			const value = rf(dv, offset);
+			ds.y.push(value);
+			offset = dataindexlist[i] + timesuboff;
+			const timeval = dv.getBigUint64(offset,true);
+			const date = new Date(Number(timeval >> 10n));
+			ds.x.push(date);
+		}
+		return ds;
     }
 }
