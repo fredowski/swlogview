@@ -77,25 +77,48 @@ const readfunc = { 'b' : my_getInt8,
 		   'Q' : my_getBigUint64
 		 };
 
+
+/* Some msgtypes handle a number of "instances" of devices which
+   produce the date. For example if you have several IMU sensors or
+   GPS devices. This list names the messagetypes which support different
+   instances and names the subitem which contains the instance number. */
+const msgt_with_instances = {
+	"BARO" : "I",
+	"BAT"  : "Instance",
+	"GPA"  : "I",
+	"GPS"  : "I",
+	"IMU"  : "I",
+	"MAG"  : "I"
+}
+
 class msgformat {
     constructor(dv, offset) {
-	this.type = dv.getUint8(offset++);
-	this.length= dv.getUint8(offset++);
-	this.name = buf2str(dv, offset, 4);
-	offset+=4;
-	this.fields = buf2str(dv, offset, 16);
-	offset+=16;
-	this.columns = buf2str(dv, offset, 64);
-	this.subitemlist = this.columns.split(",");
-	this.subitemidx_from_name = [];
-	for (var i = 0;i < this.subitemlist.length;i++)
-	    this.subitemidx_from_name[this.subitemlist[i]] = i;
-	this.subitemoffset = [0];
-	for (var i = 0, offs = 0;i < this.subitemlist.length - 1;i++) {
-	    offs += typelen[this.fields[i]];
-	    this.subitemoffset[i+1] = offs;
-	}
-	this.data = [];
+		this.type = dv.getUint8(offset++);
+		this.length= dv.getUint8(offset++);
+		this.name = buf2str(dv, offset, 4);
+		offset+=4;
+		this.fields = buf2str(dv, offset, 16);
+		offset+=16;
+		this.columns = buf2str(dv, offset, 64);
+		this.subitemlist = this.columns.split(",");
+		this.subitemidx_from_name = [];
+		for (var i = 0;i < this.subitemlist.length;i++)
+			this.subitemidx_from_name[this.subitemlist[i]] = i;
+		this.subitemoffset = [0];
+		for (var i = 0, offs = 0;i < this.subitemlist.length - 1;i++) {
+			offs += typelen[this.fields[i]];
+			this.subitemoffset[i+1] = offs;
+		}
+		const iname = msgt_with_instances[this.name];
+		if (iname != null) {
+			this.with_instances = true;
+			const subitemidx = this.subitemidx_from_name[iname];
+			this.instance_offset = this.subitemoffset[subitemidx];
+			if (this.instance_offset == null)
+				console.log("Error: Could not find instance name " + iname + " in msgtype " + this.name);
+		} else
+			this.with_instances = false;
+		this.data = [];
     }
     dump () {
 	console.log("Name: " + this.name);
@@ -126,7 +149,14 @@ class logfile {
                      * array of offsets. We can then later make a time series
                      * by going very fast throught the logbuffer */
 		    const msgt = this.msgtypes[msgtypeval];
-		    msgt.data.push(idx+3);
+			if (msgt.with_instances) {
+				const instance = dv.getUint8(idx + 3 + msgt.instance_offset);
+				if (msgt.data[instance] == null)
+					msgt.data[instance] = [idx + 3];
+				else
+					msgt.data[instance].push(idx + 3);
+			} else
+				msgt.data.push(idx+3);
 		    idx += msgt.length;
 		} else {
 		    console.log("Found message not in dictionary");
@@ -150,17 +180,23 @@ class logfile {
     }
     /* Based on item name like "GPS" and the subitemname like "Lat" I go through the logbuffer and
      * collect a time and data array ready for plotting with plotly */
-    get_data_series(item, subitem) {
-	var ds = { name : item + "." + subitem, x : [], y : [] };
+    get_data_series(item, instance, subitem) {
+	
 	const msgtypeval = this.msgtype_name_hash[item]; //Type number from name like GPS
 	const msgt = this.msgtypes[msgtypeval];
+	var ds = { name : item +
+		(msgt.with_instances ? instance : "") + "." + subitem, x : [], y : [] };
 	const subitemidx = msgt.subitemidx_from_name[subitem];
 	const timesubidx = msgt.subitemidx_from_name["TimeUS"];
 	const subitemoffset = msgt.subitemoffset[subitemidx]; /* Offset of subitem within item */
 	const timesuboff =  msgt.subitemoffset[timesubidx];
 	const rf = readfunc[msgt.fields[subitemidx]];
 	const dv = new DataView(this.buffer);
-	const dataindexlist = msgt.data;
+	let dataindexlist = [];
+	if (msgt.with_instances)
+		dataindexlist = msgt.data[instance];
+	else
+		dataindexlist = msgt.data;
 	for (let i = 0;i < dataindexlist.length;i++) {
 	    let offset = dataindexlist[i] + subitemoffset;
 	    const value = rf(dv, offset);

@@ -15,7 +15,7 @@
    channel values from the remote control input.
    All subitems will be displayed in a tree view style. */
 
-/* This function builds the navigation bar html element structure such
+/** This function builds the navigation bar html element structure such
    that the items and subitems are displayed like this
 
    RCIN         This main item name of class "caret"
@@ -28,39 +28,67 @@
                        - subitemlist : array of strings with subitemnames
 */
 function build_navbar (itemlist) {
-    var vl = document.getElementById('msglist');
+    const vl = document.getElementById('msglist');
     for (var i = 0; i < itemlist.length;i++) {
-	var item = itemlist[i];
-	if (item == null)
-	    continue;
-	var entry = document.createElement('li');
-	entry.id = item.name;
-	var span  = document.createElement('span');
+		const msgt = itemlist[i];
+		if (msgt == null)
+		    continue;
+		if (msgt.with_instances) {
+			for(let i = 0; i < msgt.data.length;i++) {
+				const entry = create_entry(msgt, i);
+				vl.appendChild(entry);
+			}
+		} else {
+			const entry = create_entry(msgt, -1);
+			vl.appendChild(entry);
+		}
+    }
+}
+
+/** Create a navbar entry based on
+ *  @param: msgtype : The msgtype like "GPS"
+ *  @param: instance : The instance number or -1 if this msgtype has no instances
+ *
+*/
+function create_entry (msgt, instance) {
+	const entry = document.createElement('li');
+	entry.id = msgt.name + "_" + (msgt.with_instances ? instance : "");
+	const span  = document.createElement('span');
 	span.className = "caret";
-	span.textContent = item.name + "    ("+ item.data.length + ")";
+	span.textContent = msgt.name +
+	    (msgt.with_instances ? instance : "") + "    (" +
+		(msgt.with_instances ? msgt.data[instance].length : msgt.data.length) + ")";
 	span.addEventListener("click", function () {
-	    var el = this.parentElement.querySelector(".nested");
-	    el.classList.toggle("active");
+		var el = this.parentElement.querySelector(".nested");
+		el.classList.toggle("active");
 	});
 	entry.appendChild(span);
-	var ul = document.createElement('ul');
+	const ul = document.createElement('ul');
 	ul.className = "nested";
-	subitemlist = item.subitemlist;
+	subitemlist = msgt.subitemlist;
 	for (var si = 0; si < subitemlist.length; si++) {
-            const li = document.createElement('li');
-	    li.textContent = subitemlist[si];
-	    li.addEventListener("click", function () {
-		const itemname = this.parentElement.parentElement.id;
-		const subitemname = this.textContent;
-		const lf = document.logfile;
-		const ds = lf.get_data_series(itemname, subitemname);
-		const plot = document.getElementById('plot');
-		Plotly.addTraces(plot, ds);
-	    });
-	    ul.appendChild(li);
+		const li = document.createElement('li');
+		li.textContent = subitemlist[si];
+		li.addEventListener("click", on_click_subitem);
+		ul.appendChild(li);
 	}
 	entry.appendChild(ul);
-	vl.appendChild(entry);
-    }	
+	return entry;
+}
+
+/** Eventhandler when a subitem is clicked.
+ *  Get the data series for the clicked subitem and
+ *  submit a plot
+ */
+function on_click_subitem () {
+	const name_instance = this.parentElement.parentElement.id;
+	const split_array = name_instance.split("_")
+	const name = split_array[0];
+	const instance = split_array[1];
+	const subitemname = this.textContent;
+	const lf = document.logfile;
+	const ds = lf.get_data_series(name, instance, subitemname);
+	const plot = document.getElementById('plot');
+	Plotly.addTraces(plot, ds);
 }
 

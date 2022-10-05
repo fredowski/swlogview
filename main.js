@@ -15,7 +15,7 @@ function readfiles(files) {
 	lf = new logfile(buffer);
 	document.logfile = lf;
 	build_navbar (lf.get_msgitem_list());
-	var ds = lf.get_data_series("BARO", "Alt");
+	var ds = lf.get_data_series("BARO", 0, "Alt");
 	// Plot
 	ds.type = 'scatter';
 	ds.showlegend = true;
