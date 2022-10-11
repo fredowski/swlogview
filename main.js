@@ -18,16 +18,30 @@ function readfiles(files) {
 	document.logfile = lf;
 	build_navbar (lf.get_msgitem_list());
 	var ds = lf.get_data_series("BARO", 0, "Alt");
-	// Plot
-	ds.type = 'scatter';
-	ds.showlegend = true;
+    ds.name = ds.name + ":y";
 	plot = document.getElementById('plot');
-	Plotly.newPlot(plot, [ds]);
+    const layout = {
+        yaxis1: {
+            side: 'left'
+        },
+        yaxis2: {
+            side: 'left',
+            overlaying: 'y',
+            position: 0.15
 
-	console.log(ds);
-	console.log(lf.msgindex);
-	console.log(dv.buffer.byteLength);
-	console.log(dv.getUint8(0).toString(16));
+        },
+        yaxis3: {
+            side: 'right',
+            overlaying: 'y',
+            position: 0.85
+        },
+        yaxis4: {
+            side: 'right',
+            overlaying: 'y'
+        }
+    };
+	Plotly.newPlot(plot, [ds], layout);
+    add_trace_to_plotctrl(ds);
     }
     reader.readAsArrayBuffer(files[0]);
 }
@@ -62,4 +76,10 @@ function handle_onfilechange(event) {
 function is_dataflash(fname) {
     const fileextension = fname.split(".").pop();
     return (fileextension == "bin");
+}
+
+function on_trace_remove(event) {
+    plot = document.getElementById('plot');
+    Plotly.deleteTraces('plot',0);
+
 }

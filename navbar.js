@@ -88,7 +88,68 @@ function on_click_subitem () {
 	const subitemname = this.textContent;
 	const lf = document.logfile;
 	const ds = lf.get_data_series(name, instance, subitemname);
+	ds.name = ds.name + ":y";
 	const plot = document.getElementById('plot');
 	Plotly.addTraces(plot, ds);
+	add_trace_to_plotctrl(ds);
+}
+
+/** Add a trace to an axis plot control element */
+function add_trace_to_plotctrl (ds) {
+	const vl = document.getElementById('y');
+	const p  = document.createElement('p');
+    p.draggable=true;
+	p.addEventListener('dragstart', axis_dragstart);
+	p.id = ds.name.split(":")[0];
+	p.textContent=p.id;
+	vl.appendChild(p);
+}
+
+function axis_drop(event) {
+	event.preventDefault();
+	const p = document.getElementById(event.dataTransfer.getData('text'));
+	if (p == null)
+		return;
+	const div = event.currentTarget.firstElementChild;
+	div.appendChild(p);
+	const tracename = p.textContent;
+	const plot = document.getElementById('plot');
+	const tracenr = trace_idx_by_name(plot, tracename);
+	if (tracenr < 0)
+		return;	
+	Plotly.restyle(plot, {yaxis: div.id, name: tracename + ":" + div.id}, tracenr);
+}
+
+function trace_idx_by_name (plot, name) {
+    const data = plot.data;
+    for(i=0;i < data.length;i++) {
+        if (data[i].name.split(":")[0] == name)
+            return i
+    }
+    return -1;
+}
+
+function delete_trace(event) {
+	event.preventDefault();
+	const p = document.getElementById(event.dataTransfer.getData('text'));
+	if (p == null)
+		return;
+	const tracename = p.textContent;
+	p.remove();
+	const plot = document.getElementById('plot');
+	const tracenr = trace_idx_by_name(plot, tracename);
+	if (tracenr < 0)
+		return;
+	Plotly.deleteTraces(plot, tracenr);
+}
+
+function axis_dragover(event) {
+	event.dataTransfer.dropEffect = 'copy';
+    event.preventDefault();
+}
+
+function axis_dragstart(event) {
+	event.dataTransfer.setData("text",event.target.id);
+	console.log(event.target.id);
 }
 

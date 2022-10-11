@@ -7,12 +7,14 @@
 <head>
 <link rel="stylesheet" href="sw.css">
 </head>
-<body ondrop="handle_ondrop(event)" ondragover="handle_dragover(event)" ondragenter="handle_dragenter(event)">
+<body>
+<section ondrop="handle_ondrop(event)" ondragover="handle_dragover(event)" ondragenter="handle_dragenter(event)">
 <h1>SearchWing Ardupilot Logviewer</h1>
 <p> Drag&Drop your dataflash *.bin file here!
 <input type="file" id="files" name="file" accept=".bin" onchange="handle_onfilechange(event)">
 </input>
 </p>
+</section>
 
 <section>
 <nav>
@@ -23,6 +25,34 @@
 <plot>
 <div id="plot"></div>
 </plot>
+
+<table>
+<tr>
+     <th>y</th>
+     <th>y2</th>
+     <th></th>
+     <th>y3</th>
+     <th>y4</th>
+</tr>     
+<tr>
+     <td ondrop="axis_drop(event)" ondragover="axis_dragover(event)">
+          <div id="y" class="axis"></div>
+     </td>
+     <td ondrop="axis_drop(event)" ondragover="axis_dragover(event)">
+          <div id="y2" class="axis"></div>
+     </td>
+     <td ondrop="delete_trace(event)" ondragover="axis_dragover(event)" style="width:300px; text-align:center; vertical-align: center;">
+          Delete
+     </td>
+     <td ondrop="axis_drop(event)" ondragover="axis_dragover(event)">
+          <div id="y3" class="axis"></div>
+     </td>
+     <td ondrop="axis_drop(event)" ondragover="axis_dragover(event)">
+          <div id="y4" class="axis"></div>
+     </td>
+</tr>
+</table>
+
 </section>
 
 <script type="text/javascript" src="dataflash.js"></script>
