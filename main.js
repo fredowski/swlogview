@@ -42,7 +42,9 @@ function readfiles(files) {
     };
 	Plotly.newPlot(plot, [ds], layout);
     add_trace_to_plotctrl(ds);
-    draw_flight_map(lf.get_gps_series());
+    const gpsds = lf.get_gps_series();
+    draw_flight_map(gpsds);
+    get_overview(gpsds, lf.get_boot_time());
     }
     reader.readAsArrayBuffer(files[0]);
 }

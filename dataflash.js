@@ -76,6 +76,8 @@ const readfunc = { 'b' : my_getInt8,
 		   'L' : my_getInt32,
 		   'c' : my_getInt16,
 		   'C' : my_getUint16,
+		   'e' : my_getInt32,
+		   'E' : my_getUint32,
 		   'Q' : my_getBigUint64
 		 };
 
@@ -238,6 +240,7 @@ class logfile {
 		let latmax = -90.0;
 		let lonmin = 180.0;
 		let lonmax = -180.0;
+		let velmax = -1000.0;
 		for (let i = 0;i < dataindexlist.length;i++) {
 			const msgoffset = dataindexlist[i];
 			const status = statusrf(dv, msgoffset + statusoffset);
@@ -253,6 +256,7 @@ class logfile {
 			loncen += lon;
 			ds.lon.push(lon);
 			const vel = velrf(dv, msgoffset + veloffset);
+			velmax = Math.max(velmax,vel);
 			ds.vel.push(vel);
 			const timeval = dv.getBigUint64(msgoffset + timeoffset,true);
 			const date = new Date(Number(timeval / 1000n) + this.boot_time_ms_since_epoch);
@@ -262,6 +266,7 @@ class logfile {
 		ds.latmax = latmax;
 		ds.lonmin = lonmin;
 		ds.lonmax = lonmax;
+		ds.velmax = velmax;
 		ds.cenlon = loncen/dataindexlist.length;
 		ds.cenlat = latcen/dataindexlist.length;
 		return ds;
@@ -303,7 +308,7 @@ class logfile {
 			const gms = gmsrf(dv, msgoffset + gmsoffset);
 			const timeval = dv.getBigUint64(msgoffset + timeoffset,true);
 			const time_since_boot_ms = Number(timeval / 1000n);
-			const date_gps_start_week_ms_since_epoch = Date.UTC(1980,0,5);
+			const date_gps_start_week_ms_since_epoch = Date.UTC(1980,0,6);
 			const time_gwk_ms = gwk * 7 * 24 * 3600 * 1000;
 			const msgtime_ms_since_epoch = date_gps_start_week_ms_since_epoch + time_gwk_ms + gms;
 			const time_at_boot_ms_since_epoch = msgtime_ms_since_epoch - time_since_boot_ms;
@@ -311,4 +316,8 @@ class logfile {
 		}
 		return 0;
     }
+
+	get_boot_time() {
+		return this.boot_time_ms_since_epoch;
+	}
 }
