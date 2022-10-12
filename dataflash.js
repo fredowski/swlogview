@@ -133,6 +133,7 @@ class logfile {
 		this.msgtypes = [], // An array of message type items like GPS, indexed with the type number
 		this.msgtype_name_hash = [],
 		this.parse();
+		this.boot_time_ms_since_epoch = this.find_timebase();
     }
     parse() {
 	for (var dv = new DataView(buffer), idx = 0; idx < dv.byteLength-3;) {
@@ -204,7 +205,7 @@ class logfile {
 			ds.y.push(value);
 			offset = dataindexlist[i] + timesuboff;
 			const timeval = dv.getBigUint64(offset,true);
-			const date = new Date(Number(timeval >> 10n));
+			const date = new Date(Number(timeval / 1000n) + this.boot_time_ms_since_epoch);
 			ds.x.push(date);
 		}
 		return ds;
@@ -215,17 +216,20 @@ class logfile {
 	get_gps_series() {
 		const gpstypeval = this.msgtype_name_hash["GPS"];
 		const msgt = this.msgtypes[gpstypeval];
-		var ds = { name : "GPS", lat : [], lon : [], time : [], vel : [] };
+		var ds = { name : "GPS", lat : [], lon : [], time : [], vel : [], status : [] };
 		const latsubidx  = msgt.subitemidx_from_name["Lat"];
 		const lonsubidx  = msgt.subitemidx_from_name["Lng"];
 		const velsubidx  = msgt.subitemidx_from_name["Spd"];
 		const timesubidx = msgt.subitemidx_from_name["TimeUS"];
+		const statusidx  = msgt.subitemidx_from_name["Status"];
 		const latoffset  = msgt.subitemoffset[latsubidx];
 		const lonoffset  = msgt.subitemoffset[lonsubidx];
 		const veloffset  = msgt.subitemoffset[velsubidx];
 		const timeoffset  = msgt.subitemoffset[timesubidx];
+		const statusoffset = msgt.subitemoffset[statusidx];
 		const latlonrf    = readfunc[msgt.fields[latsubidx]];
 		const velrf       = readfunc[msgt.fields[velsubidx]];
+		const statusrf    = readfunc[msgt.fields[statusidx]];
 
 		const dv = new DataView(this.buffer);
 		const dataindexlist = msgt.data[0]; // GPS instance 0
@@ -236,6 +240,8 @@ class logfile {
 		let lonmax = -180.0;
 		for (let i = 0;i < dataindexlist.length;i++) {
 			const msgoffset = dataindexlist[i];
+			const status = statusrf(dv, msgoffset + statusoffset);
+			ds.status.push(status);
 			const lat = latlonrf(dv, msgoffset + latoffset) / 10000000.0;
 			latmin = Math.min(latmin, lat);
 			latmax = Math.max(latmax, lat);
@@ -249,7 +255,7 @@ class logfile {
 			const vel = velrf(dv, msgoffset + veloffset);
 			ds.vel.push(vel);
 			const timeval = dv.getBigUint64(msgoffset + timeoffset,true);
-			const date = new Date(Number(timeval >> 10n));
+			const date = new Date(Number(timeval / 1000n) + this.boot_time_ms_since_epoch);
 			ds.time.push(date);
 		}
 		ds.latmin = latmin;
@@ -259,5 +265,50 @@ class logfile {
 		ds.cenlon = loncen/dataindexlist.length;
 		ds.cenlat = latcen/dataindexlist.length;
 		return ds;
+    }
+	/** Find the timebase of the logfile by relating the
+	 *  "TimeUS" which gives the Microseconds since boot with
+	 *  the GPS absolute time available in
+	 *  GPS.GMS - Milliseconds since start of GPS Week
+	 *  GPS.GWk - Weeks since 5 January 1980
+	 *  Return: Boot time in ms since epoch (1 January 1970)
+	*/
+	find_timebase() {
+		const gpstypeval = this.msgtype_name_hash["GPS"];
+		if (gpstypeval == null)
+			return 0; /* No GPS message in dictionary */
+		const msgt = this.msgtypes[gpstypeval];
+
+		const gmssubidx  = msgt.subitemidx_from_name["GMS"];
+		const gwksubidx  = msgt.subitemidx_from_name["GWk"];
+		const timesubidx = msgt.subitemidx_from_name["TimeUS"];
+		const statusidx  = msgt.subitemidx_from_name["Status"];
+		const gmsoffset  = msgt.subitemoffset[gmssubidx];
+		const gwkoffset  = msgt.subitemoffset[gwksubidx];
+		const timeoffset  = msgt.subitemoffset[timesubidx];
+		const statusoffset = msgt.subitemoffset[statusidx];
+		const gmsrf       = readfunc[msgt.fields[gmssubidx]];
+		const gwkrf       = readfunc[msgt.fields[gwksubidx]];
+		const statusrf    = readfunc[msgt.fields[statusidx]];
+
+		const dv = new DataView(this.buffer);
+		const dataindexlist = msgt.data[0]; // GPS instance 0
+		for (let i = 0;i < dataindexlist.length;i++) {
+			const msgoffset = dataindexlist[i];
+			const status = statusrf(dv, msgoffset + statusoffset);
+			if (status < 3) { /* Search for GPS 3D fix or better */
+				continue;
+			}
+			const gwk = gwkrf(dv, msgoffset + gwkoffset);
+			const gms = gmsrf(dv, msgoffset + gmsoffset);
+			const timeval = dv.getBigUint64(msgoffset + timeoffset,true);
+			const time_since_boot_ms = Number(timeval / 1000n);
+			const date_gps_start_week_ms_since_epoch = Date.UTC(1980,0,5);
+			const time_gwk_ms = gwk * 7 * 24 * 3600 * 1000;
+			const msgtime_ms_since_epoch = date_gps_start_week_ms_since_epoch + time_gwk_ms + gms;
+			const time_at_boot_ms_since_epoch = msgtime_ms_since_epoch - time_since_boot_ms;
+			return time_at_boot_ms_since_epoch;
+		}
+		return 0;
     }
 }
