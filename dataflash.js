@@ -209,4 +209,55 @@ class logfile {
 		}
 		return ds;
     }
+	/** Retrieve the position information from GPS for map drawing, flight time and
+	 *  flight distance computations.
+	*/
+	get_gps_series() {
+		const gpstypeval = this.msgtype_name_hash["GPS"];
+		const msgt = this.msgtypes[gpstypeval];
+		var ds = { name : "GPS", lat : [], lon : [], time : [], vel : [] };
+		const latsubidx  = msgt.subitemidx_from_name["Lat"];
+		const lonsubidx  = msgt.subitemidx_from_name["Lng"];
+		const velsubidx  = msgt.subitemidx_from_name["Spd"];
+		const timesubidx = msgt.subitemidx_from_name["TimeUS"];
+		const latoffset  = msgt.subitemoffset[latsubidx];
+		const lonoffset  = msgt.subitemoffset[lonsubidx];
+		const veloffset  = msgt.subitemoffset[velsubidx];
+		const timeoffset  = msgt.subitemoffset[timesubidx];
+		const latlonrf    = readfunc[msgt.fields[latsubidx]];
+		const velrf       = readfunc[msgt.fields[velsubidx]];
+
+		const dv = new DataView(this.buffer);
+		const dataindexlist = msgt.data[0]; // GPS instance 0
+		let latcen = 0.0, loncen = 0.0;
+		let latmin = 90.0;
+		let latmax = -90.0;
+		let lonmin = 180.0;
+		let lonmax = -180.0;
+		for (let i = 0;i < dataindexlist.length;i++) {
+			const msgoffset = dataindexlist[i];
+			const lat = latlonrf(dv, msgoffset + latoffset) / 10000000.0;
+			latmin = Math.min(latmin, lat);
+			latmax = Math.max(latmax, lat);
+			latcen += lat;
+			ds.lat.push(lat);
+			const lon = latlonrf(dv, msgoffset + lonoffset) / 10000000.0;
+			lonmin = Math.min(lonmin, lon);
+			lonmax = Math.max(lonmax, lon);
+			loncen += lon;
+			ds.lon.push(lon);
+			const vel = velrf(dv, msgoffset + veloffset);
+			ds.vel.push(vel);
+			const timeval = dv.getBigUint64(msgoffset + timeoffset,true);
+			const date = new Date(Number(timeval >> 10n));
+			ds.time.push(date);
+		}
+		ds.latmin = latmin;
+		ds.latmax = latmax;
+		ds.lonmin = lonmin;
+		ds.lonmax = lonmax;
+		ds.cenlon = loncen/dataindexlist.length;
+		ds.cenlat = latcen/dataindexlist.length;
+		return ds;
+    }
 }

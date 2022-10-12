@@ -42,6 +42,7 @@ function readfiles(files) {
     };
 	Plotly.newPlot(plot, [ds], layout);
     add_trace_to_plotctrl(ds);
+    draw_flight_map(lf.get_gps_series());
     }
     reader.readAsArrayBuffer(files[0]);
 }
