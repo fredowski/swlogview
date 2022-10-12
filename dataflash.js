@@ -12,6 +12,7 @@ function buf2str(buf, offset, length) {
 	buf.getUint8(offset + idx) != 0 && (res += String.fromCharCode(buf.getUint8(offset + idx)));
     return res
 }
+/* See: https://github.com/ArduPilot/ardupilot/blob/master/libraries/AP_Logger/LogStructure.h */
 
 const typelen = { 'b' : 1, // int8_t
 		  'B' : 1, // uint8_t
@@ -72,6 +73,7 @@ const readfunc = { 'b' : my_getInt8,
 		   'i' : my_getInt32,
 		   'I' : my_getUint32,
 		   'f' : my_getFloat32,
+		   'L' : my_getInt32,
 		   'c' : my_getInt16,
 		   'C' : my_getUint16,
 		   'Q' : my_getBigUint64
