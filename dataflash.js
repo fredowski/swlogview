@@ -92,7 +92,14 @@ const msgt_with_instances = {
 	"GPA"  : "I",
 	"GPS"  : "I",
 	"IMU"  : "I",
-	"MAG"  : "I"
+	"MAG"  : "I",
+	"XKF0" : "C",
+	"XKF1" : "C",
+	"XKF2" : "C",
+	"XKF3" : "C",
+	"XKF4" : "C",
+	"XKF5" : "C",
+	"VIBE" : "IMU"
 }
 
 class msgformat {
@@ -114,14 +121,15 @@ class msgformat {
 			this.subitemoffset[i+1] = offs;
 		}
 		const iname = msgt_with_instances[this.name];
+		this.with_instances = false;
 		if (iname != null) {
-			this.with_instances = true;
 			const subitemidx = this.subitemidx_from_name[iname];
 			this.instance_offset = this.subitemoffset[subitemidx];
 			if (this.instance_offset == null)
 				console.log("Error: Could not find instance name " + iname + " in msgtype " + this.name);
-		} else
-			this.with_instances = false;
+			else
+				this.with_instances = true;
+		}
 		this.data = [];
     }
     dump () {
@@ -234,7 +242,11 @@ class logfile {
 		const statusrf    = readfunc[msgt.fields[statusidx]];
 
 		const dv = new DataView(this.buffer);
-		const dataindexlist = msgt.data[0]; // GPS instance 0
+		let dataindexlist = [];
+		if (msgt.with_instances)
+			dataindexlist = msgt.data[0];  // GPS instance 0
+		else
+			dataindexlist = msgt.data;
 		let latcen = 0.0, loncen = 0.0;
 		let latmin = 90.0;
 		let latmax = -90.0;
@@ -297,7 +309,11 @@ class logfile {
 		const statusrf    = readfunc[msgt.fields[statusidx]];
 
 		const dv = new DataView(this.buffer);
-		const dataindexlist = msgt.data[0]; // GPS instance 0
+		let dataindexlist = [];
+		if (msgt.with_instances)
+			dataindexlist = msgt.data[0]; // GPS instance 0
+		else
+			dataindexlist = msgt.data;
 		for (let i = 0;i < dataindexlist.length;i++) {
 			const msgoffset = dataindexlist[i];
 			const status = statusrf(dv, msgoffset + statusoffset);
