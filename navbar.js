@@ -62,7 +62,12 @@ function create_entry (msgt, instance) {
 		var el = this.parentElement.querySelector(".nested");
 		el.classList.toggle("active");
 	});
+	const a = document.createElement('a');
+	a.href = "https://ardupilot.org/plane/docs/logmessages.html#" + msgt.name.toLowerCase();
+	a.textContent = "i";
+	a.style = "padding-left:10px"
 	entry.appendChild(span);
+	entry.appendChild(a);
 	const ul = document.createElement('ul');
 	ul.className = "nested";
 	subitemlist = msgt.subitemlist;
