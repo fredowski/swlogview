@@ -8,6 +8,18 @@
 
 body {margin:0;}
 
+.viewcontrol {
+  spacing : 0px;
+  min-height : 50px;
+}
+.viewcontrol td {
+  border-spacing : 0px 0px;
+  border : 1px solid red;
+  background-color : greenyellow;
+  min-width : 200px;
+  text-align : center;
+}
+
 nav {
 float : left;
 width : 150px;

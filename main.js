@@ -9,6 +9,10 @@
 function readfiles(files) {
     if (!is_dataflash(files[0].name))
         return;
+    uploadpage = document.getElementById('uploadpage');
+    uploadpage.style.display="none";
+    analyzepage = document.getElementById('analyzepage');
+    analyzepage.style.display="initial";
     reader = new FileReader();
     reader.onload = function(event) {
 	console.log("file open");
@@ -85,4 +89,44 @@ function on_trace_remove(event) {
     plot = document.getElementById('plot');
     Plotly.deleteTraces('plot',0);
 
+}
+
+function upload_click(event) {
+    uploadpage = document.getElementById('uploadpage');
+    uploadpage.style.display="initial";
+    analyzepage = document.getElementById('analyzepage');
+    analyzepage.style.display="none";
+}
+
+function on_ulSend() {
+    let logfile = document.getElementById("fileToUpload").files[0];
+    let locationname = document.getElementById("ulLocation").value;
+    console.log("Hallo Click");
+    const chunksize = 1000000;
+    let chunknr = 0;
+    for(let filepos = 0;filepos < logfile.size;filepos += chunksize) {
+        const chunk = logfile.slice(filepos, filepos + chunksize);
+        const formData = new FormData();
+        formData.append("fileToUpload", chunk, logfile.name + chunknr++);
+        let xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = state => {console.log("Status", xhr.status); };
+        xhr.timeout = 5000;
+        xhr.open("POST", 'upload.php');
+        xhr.send(formData);
+    }
+}
+
+function on_ulSend_onefile() {
+    let logfile = document.getElementById("fileToUpload").files[0];
+    let locationname = document.getElementById("ulLocation").value;
+    console.log("Hallo Click");
+    let formData = new FormData();
+    formData.append("fileToUpload", logfile);
+    formData.append("location", locationname);
+
+    let xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = state => {console.log("Status", xhr.status); };
+    xhr.timeout = 5000;
+    xhr.open("POST", 'upload.php');
+    xhr.send(formData);
 }

@@ -10,60 +10,65 @@
 <body>
 <section ondrop="handle_ondrop(event)" ondragover="handle_dragover(event)" ondragenter="handle_dragenter(event)">
 <h1>SearchWing Ardupilot Logviewer</h1>
-<p> Drag&Drop your dataflash *.bin file here!
-<input type="file" id="files" name="file" accept=".bin" onchange="handle_onfilechange(event)">
-</input>
-</p>
+<table class="viewcontrol">
+     <tr>
+          <td>
+               <p> Drag&Drop your dataflash *.bin file here!
+                    <input type="file" id="files" name="file" accept=".bin" onchange="handle_onfilechange(event)">
+                    </input>
+               </p>
+          </td>
+          <td onclick="upload_click()">
+               <p>Upload Form</p>
+          </td>
+     </tr>
+</table>
 </section>
 
-<section>
+<section id="analyzepage" style="display:none">
 <div id="overview">
-     <table style="visibility:true" >
+     <table>
           <tr>
                <td>Logging Start</td>
-               <td id="logstart">28-02-2019 17:06</td>
+               <td id="logstart">-</td>
           </tr>
           <tr>
                <td><a href="https://ardupilot.org/plane/docs/logmessages.html#acc">Logging Duration</a></td>
-               <td id="logduration">0:39:45</td>
+               <td id="logduration">-</td>
           </tr>
           <tr>
                <td>Distance</td>
-               <td id="distance">54.34 km</td>
+               <td id="distance">- km</td>
           </tr>
           <tr>
                <td>Max Altitude Difference</td>
-               <td id="maxaltdiff">127 m</td>
+               <td id="maxaltdiff">- m</td>
           </tr>
           <tr>
                <td>Flight time</td>
-               <td id="flighttime">2 hours 51 minutes 48 seconds</td>
+               <td id="flighttime">-</td>
           </tr>
           <tr>
                <td>Average Speed</td>
-               <td id="avgspeed">81.7 km/h</td>
+               <td id="avgspeed">- km/h</td>
           </tr>
           <tr>
                <td>Maximum Speed</td>
-               <td id="maxspeed">112.4 km/h</td>
+               <td id="maxspeed">- km/h</td>
           </tr>
           <tr>
                <td>Maximum Speed Up</td>
-               <td id="maxupspeed">39.7 km/h</td>
+               <td id="maxupspeed">- km/h</td>
           </tr>
           <tr>
                <td>Maximum Speed Down</td>
-               <td id="maxdownspeed">24.5 km/h</td>
+               <td id="maxdownspeed">- km/h</td>
           </tr>
      </table>
 </div>
-</section>
 
-<section>
-     <div id="map"></div>
-</section>
+<div id="map"></div>
 
-<section>
 <nav>
 <ul id="msglist">
 <!-- The item tree will be build here -->
@@ -102,6 +107,17 @@
 
 </section>
 
+<section id="uploadpage" style="display:none">
+<form>
+     Select image to upload:
+     <input type="file" name="fileToUpload" id="fileToUpload">
+     <input type="text" name="ulLocation" id="ulLocation">
+     <input type="button" value="Send" name="ulSend" onclick="on_ulSend()">
+     <input type="button" value="Cancel" name="ulCancel">
+     <input type="submit" value="Upload Image" name="submit">
+</form>
+</section>
+</body>
 
 <script type="text/javascript" src="dataflash.js"></script>
 <script type="text/javascript" src="navbar.js"></script>
