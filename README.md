@@ -12,7 +12,7 @@ open "index.html".
 # Third party software
 
 The plotting is based on the [plotly](https://plotly.com/javascript/)
-software.
+software. The map plotting will download map tiles from openstreetmap.org
 
 # License
 
