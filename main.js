@@ -82,7 +82,7 @@ function handle_onfilechange(event) {
  */
 function is_dataflash(fname) {
     const fileextension = fname.split(".").pop();
-    return (fileextension == "bin");
+    return (fileextension.toLowerCase() == "bin");
 }
 
 function on_trace_remove(event) {
